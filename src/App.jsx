@@ -228,6 +228,8 @@ export default function App() {
 
   // Form states for adding Faculty, Program, Course manually
   const [newFaculty, setNewFaculty] = useState({ code: '', name: '' });
+  const [editingFacultyId, setEditingFacultyId] = useState(null);
+  const [editFacultyData, setEditFacultyData] = useState({ code: '', name: '' });
   const [newProgram, setNewProgram] = useState({ facultyId: '', name: '' });
   const [newCourse, setNewCourse] = useState({
     facultyId: '',
@@ -462,6 +464,21 @@ export default function App() {
   };
 
   // Simple additions
+  const handleStartEditFaculty = (f) => {
+    setEditingFacultyId(f.id);
+    setEditFacultyData({ code: f.code, name: f.name });
+  };
+
+  const handleSaveFaculty = (id) => {
+    if (!editFacultyData.code || !editFacultyData.name) {
+      triggerNotification("Faculty Code and Name cannot be empty", "error");
+      return;
+    }
+    setFaculties(prev => prev.map(f => f.id === id ? { ...f, code: editFacultyData.code.toUpperCase(), name: editFacultyData.name } : f));
+    setEditingFacultyId(null);
+    triggerNotification("Faculty updated successfully!");
+  };
+
   const handleAddFaculty = (e) => {
     e.preventDefault();
     if (!newFaculty.code || !newFaculty.name) {
@@ -1952,15 +1969,59 @@ export default function App() {
                 <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
                   {faculties.map(f => {
                     const progCount = programs.filter(p => p.facultyId === f.id).length;
+                    const isEditing = editingFacultyId === f.id;
                     return (
-                      <div key={f.id} className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                        <div>
-                          <span className="font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded text-xs mr-2">{f.code}</span>
-                          <span className="font-bold text-slate-800 text-xs">{f.name}</span>
-                        </div>
-                        <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">
-                          {progCount} programs
-                        </span>
+                      <div key={f.id} className="p-4 hover:bg-slate-50 transition-colors">
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-3 gap-2">
+                              <input
+                                type="text"
+                                value={editFacultyData.code}
+                                onChange={(e) => setEditFacultyData(p => ({ ...p, code: e.target.value }))}
+                                className="col-span-1 bg-white border border-indigo-300 text-slate-800 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-bold uppercase"
+                                placeholder="Code"
+                              />
+                              <input
+                                type="text"
+                                value={editFacultyData.name}
+                                onChange={(e) => setEditFacultyData(p => ({ ...p, name: e.target.value }))}
+                                className="col-span-2 bg-white border border-indigo-300 text-slate-800 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                                placeholder="Faculty Name"
+                              />
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => handleSaveFaculty(f.id)}
+                                className="px-3 py-1 text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingFacultyId(null)}
+                                className="px-3 py-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded text-xs mr-2">{f.code}</span>
+                              <span className="font-bold text-slate-800 text-xs">{f.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">{progCount} programs</span>
+                              <button
+                                onClick={() => handleStartEditFaculty(f)}
+                                className="px-2.5 py-1 text-[10px] bg-slate-100 text-slate-700 font-bold rounded hover:bg-indigo-600 hover:text-white transition-colors"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
