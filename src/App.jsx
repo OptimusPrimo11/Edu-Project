@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { db } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // ==========================================
 // PRE-LOADED INITIAL DATA (From spreadsheets)
@@ -159,19 +161,34 @@ const INITIAL_COURSES = [
 
 export default function App() {
   // State variables
-  const [faculties, setFaculties] = useState(() => {
-    try { const s = localStorage.getItem('edu_faculties'); return s ? JSON.parse(s) : INITIAL_FACULTIES; } catch { return INITIAL_FACULTIES; }
-  });
-  const [programs, setPrograms] = useState(() => {
-    try { const s = localStorage.getItem('edu_programs'); return s ? JSON.parse(s) : INITIAL_PROGRAMS; } catch { return INITIAL_PROGRAMS; }
-  });
-  const [courses, setCourses] = useState(() => {
-    try { const s = localStorage.getItem('edu_courses'); return s ? JSON.parse(s) : INITIAL_COURSES; } catch { return INITIAL_COURSES; }
-  });
+  const [loading, setLoading] = useState(true);
+  const [faculties, setFaculties] = useState(INITIAL_FACULTIES);
+  const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
+  const [courses, setCourses] = useState(INITIAL_COURSES);
 
-  useEffect(() => { localStorage.setItem('edu_faculties', JSON.stringify(faculties)); }, [faculties]);
-  useEffect(() => { localStorage.setItem('edu_programs', JSON.stringify(programs)); }, [programs]);
-  useEffect(() => { localStorage.setItem('edu_courses', JSON.stringify(courses)); }, [courses]);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [facSnap, progSnap, courseSnap] = await Promise.all([
+          getDoc(doc(db, 'edudata', 'faculties')),
+          getDoc(doc(db, 'edudata', 'programs')),
+          getDoc(doc(db, 'edudata', 'courses')),
+        ]);
+        if (facSnap.exists()) setFaculties(facSnap.data().items);
+        if (progSnap.exists()) setPrograms(progSnap.data().items);
+        if (courseSnap.exists()) setCourses(courseSnap.data().items);
+      } catch (err) {
+        console.error('Failed to load data from Firestore:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => { if (!loading) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties }); }, [faculties, loading]);
+  useEffect(() => { if (!loading) setDoc(doc(db, 'edudata', 'programs'), { items: programs }); }, [programs, loading]);
+  useEffect(() => { if (!loading) setDoc(doc(db, 'edudata', 'courses'), { items: courses }); }, [courses, loading]);
 
   // Filter state for dashboard
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('All');
@@ -495,6 +512,15 @@ export default function App() {
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <p className="text-slate-600 font-semibold">Loading EduClassify...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
