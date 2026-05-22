@@ -551,7 +551,7 @@ export default function App() {
     let teachingSubPractical = course.teachingSubPractical || 'Makmal Komputer';
     if (!course.teachingMode) {
       const ta = course.teachingActivity || '';
-      const practicalOptions = ['Makmal Sains', 'Makmal Komputer', 'Studio', 'Klinikal'];
+      const practicalOptions = ['Makmal Sains', 'Makmal Komputer', 'Studio', 'Clinical/Medical Attachment'];
       const hasPractical = practicalOptions.some(o => ta.includes(o));
       const hasTeori = ta.includes('Online') || ta.includes('Hybrid') || ta.includes('Hibrid');
       if (hasPractical && hasTeori) teachingMode = 'Teori + Practical (Physical)';
@@ -1286,7 +1286,7 @@ export default function App() {
                       }`}
                     >
                       <div className="font-extrabold text-lg">Yes / Ya</div>
-                      <div className="text-[10px] text-slate-400 mt-2">Requires lab or workshop facility (Makmal Sains/Komputer/Studio/Klinikal)</div>
+                      <div className="text-[10px] text-slate-400 mt-2">Requires lab or workshop facility (Makmal Sains/Komputer/Studio/Clinical/Medical Attachment)</div>
                     </button>
 
                     <button
@@ -1316,7 +1316,7 @@ export default function App() {
                         <option value="Makmal Sains">Makmal Sains (Science Lab)</option>
                         <option value="Makmal Komputer">Makmal Komputer (Computer Lab)</option>
                         <option value="Studio">Studio (Design/Art Studio)</option>
-                        <option value="Klinikal">Klinikal (Clinical / Medical Setup)</option>
+                        <option value="Clinical/Medical Attachment">Clinical/Medical Attachment (Clinical / Medical Setup)</option>
                       </select>
                     </div>
                   )}
@@ -1645,7 +1645,7 @@ export default function App() {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Practical Location / Environment</label>
                       <div className="flex flex-wrap gap-3">
-                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Klinikal'].map(opt => (
+                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Clinical/Medical Attachment'].map(opt => (
                           <button
                             key={opt}
                             type="button"
