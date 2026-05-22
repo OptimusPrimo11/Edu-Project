@@ -235,7 +235,6 @@ export default function App() {
     name: '',
     courseType: 'Teras',
     professionalBody: 'Tidak',
-    deliveryMode: 'Mode 1: Theory',
     teachingMode: 'Teori',
     teachingSubTeori: 'Online',
     teachingSubPractical: 'Makmal Komputer',
@@ -495,13 +494,15 @@ export default function App() {
     const subTeori = newCourse.teachingSubTeori || 'Online';
     const subPractical = newCourse.teachingSubPractical || 'Makmal Komputer';
     let composedTeaching = '';
-    if (tm === 'Teori') composedTeaching = subTeori;
-    else if (tm === 'Practical (Physical)') composedTeaching = subPractical;
-    else composedTeaching = `${subTeori} + ${subPractical}`;
+    let derivedDeliveryMode = 'Mode 1: Theory';
+    if (tm === 'Teori') { composedTeaching = subTeori; derivedDeliveryMode = 'Mode 1: Theory'; }
+    else if (tm === 'Practical (Physical)') { composedTeaching = subPractical; derivedDeliveryMode = 'Mode 2: Practical'; }
+    else { composedTeaching = `${subTeori} + ${subPractical}`; derivedDeliveryMode = 'Mode 3: Theory + Practical'; }
 
     const courseData = {
       ...newCourse,
       teachingActivity: composedTeaching,
+      deliveryMode: derivedDeliveryMode,
       id: editingCourseId || 'c_' + Date.now()
     };
 
@@ -521,7 +522,6 @@ export default function App() {
       name: '',
       courseType: 'Teras',
       professionalBody: 'Tidak',
-      deliveryMode: 'Mode 1: Theory',
       teachingMode: 'Teori',
       teachingSubTeori: 'Online',
       teachingSubPractical: 'Makmal Komputer',
@@ -1563,19 +1563,6 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Suggested Delivery Mode</label>
-                    <select
-                      value={newCourse.deliveryMode}
-                      onChange={(e) => setNewCourse(p => ({ ...p, deliveryMode: e.target.value }))}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-bold"
-                    >
-                      <option value="Mode 1: Theory">Mode 1: Theory (Online / Hybrid)</option>
-                      <option value="Mode 2: Practical">Mode 2: Practical (Physical)</option>
-                      <option value="Mode 3: Theory + Practical">Mode 3: Theory + Practical (Mixed)</option>
-                    </select>
-                  </div>
-
-                  <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Aktiviti Pengajaran (Teach)</label>
                     <select
                       value={newCourse.teachingMode || 'Teori'}
@@ -1800,14 +1787,14 @@ export default function App() {
                       <th className="px-6 py-3">Academic Scope</th>
                       <th className="px-6 py-3">Category Type</th>
                       <th className="px-6 py-3">Pro Body</th>
-                      <th className="px-6 py-3">Suggested Modalities</th>
+                      <th className="px-6 py-3">Aktiviti Pengajaran</th>
                       <th className="px-6 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredCoursesTable.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
+                        <td colSpan="5" className="px-6 py-8 text-center text-slate-400">
                           No courses match your filter criteria.
                         </td>
                       </tr>
@@ -1842,8 +1829,8 @@ export default function App() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="font-bold text-slate-700 text-[11px]">{c.deliveryMode}</div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">T: {c.teachingActivity} | A: {c.assessmentActivity}</div>
+                            <div className="font-bold text-slate-700 text-[11px]">{c.teachingActivity}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">Assessment: {c.assessmentActivity}</div>
                           </td>
                           <td className="px-6 py-4 text-right space-x-1 whitespace-nowrap">
                             <button
