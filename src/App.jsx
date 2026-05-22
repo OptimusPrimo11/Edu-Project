@@ -236,7 +236,10 @@ export default function App() {
     courseType: 'Teras',
     professionalBody: 'Tidak',
     deliveryMode: 'Mode 1: Theory',
-    teachingActivity: 'Online Penuh',
+    teachingMode: 'Teori',
+    teachingSubTeori: 'Online',
+    teachingSubPractical: 'Makmal Komputer',
+    teachingActivity: 'Online',
     assessmentActivity: 'Online Penuh',
     year: 'Tahun 1',
     semester: 'Semester 1'
@@ -488,8 +491,17 @@ export default function App() {
       return;
     }
 
+    const tm = newCourse.teachingMode || 'Teori';
+    const subTeori = newCourse.teachingSubTeori || 'Online';
+    const subPractical = newCourse.teachingSubPractical || 'Makmal Komputer';
+    let composedTeaching = '';
+    if (tm === 'Teori') composedTeaching = subTeori;
+    else if (tm === 'Practical (Physical)') composedTeaching = subPractical;
+    else composedTeaching = `${subTeori} + ${subPractical}`;
+
     const courseData = {
       ...newCourse,
+      teachingActivity: composedTeaching,
       id: editingCourseId || 'c_' + Date.now()
     };
 
@@ -510,7 +522,10 @@ export default function App() {
       courseType: 'Teras',
       professionalBody: 'Tidak',
       deliveryMode: 'Mode 1: Theory',
-      teachingActivity: 'Online Penuh',
+      teachingMode: 'Teori',
+      teachingSubTeori: 'Online',
+      teachingSubPractical: 'Makmal Komputer',
+      teachingActivity: 'Online',
       assessmentActivity: 'Online Penuh',
       year: 'Tahun 1',
       semester: 'Semester 1'
@@ -526,9 +541,24 @@ export default function App() {
 
   const handleEditCourse = (course) => {
     setEditingCourseId(course.id);
-    setNewCourse({ ...course });
+    // Parse teachingActivity into cascading fields if not already stored
+    let teachingMode = course.teachingMode || 'Teori';
+    let teachingSubTeori = course.teachingSubTeori || 'Online';
+    let teachingSubPractical = course.teachingSubPractical || 'Makmal Komputer';
+    if (!course.teachingMode) {
+      const ta = course.teachingActivity || '';
+      const practicalOptions = ['Makmal Sains', 'Makmal Komputer', 'Studio', 'Klinikal'];
+      const hasPractical = practicalOptions.some(o => ta.includes(o));
+      const hasTeori = ta.includes('Online') || ta.includes('Hybrid') || ta.includes('Hibrid');
+      if (hasPractical && hasTeori) teachingMode = 'Teori + Practical (Physical)';
+      else if (hasPractical) teachingMode = 'Practical (Physical)';
+      else teachingMode = 'Teori';
+      if (ta.includes('Hybrid') || ta.includes('Hibrid')) teachingSubTeori = 'Hybrid';
+      const matchedPractical = practicalOptions.find(o => ta.includes(o));
+      if (matchedPractical) teachingSubPractical = matchedPractical;
+    }
+    setNewCourse({ ...course, teachingMode, teachingSubTeori, teachingSubPractical });
     setActiveTab('courses');
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1548,17 +1578,67 @@ export default function App() {
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Aktiviti Pengajaran (Teach)</label>
                     <select
-                      value={newCourse.teachingActivity}
-                      onChange={(e) => setNewCourse(p => ({ ...p, teachingActivity: e.target.value }))}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                      value={newCourse.teachingMode || 'Teori'}
+                      onChange={(e) => setNewCourse(p => ({ ...p, teachingMode: e.target.value }))}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-semibold"
                     >
-                      <option value="Online Penuh">Online Penuh</option>
-                      <option value="Hibrid">Hibrid (Hybrid)</option>
-                      <option value="Fizikal (Keperluan Amali)">Fizikal (Keperluan Amali)</option>
-                      <option value="Fizikal (Sekatan Badan Professional)">Fizikal (Sekatan Badan Professional)</option>
+                      <option value="Teori">Teori</option>
+                      <option value="Practical (Physical)">Practical (Physical)</option>
+                      <option value="Teori + Practical (Physical)">Teori + Practical (Physical)</option>
                     </select>
                   </div>
                 </div>
+
+                {/* CASCADING SUB-SELECTS FOR AKTIVITI PENGAJARAN */}
+                {(newCourse.teachingMode === 'Teori' || newCourse.teachingMode === 'Teori + Practical (Physical)' || !newCourse.teachingMode) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <div className="md:col-span-2 text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Teori Sub-options</div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Delivery Method</label>
+                      <div className="flex gap-3">
+                        {['Online', 'Hybrid'].map(opt => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setNewCourse(p => ({ ...p, teachingSubTeori: opt }))}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+                              (newCourse.teachingSubTeori || 'Online') === opt
+                              ? 'bg-indigo-600 border-indigo-600 text-white'
+                              : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(newCourse.teachingMode === 'Practical (Physical)' || newCourse.teachingMode === 'Teori + Practical (Physical)') && (
+                  <div className="grid grid-cols-1 gap-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                    <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Practical (Physical) Sub-options</div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Practical Location / Environment</label>
+                      <div className="flex flex-wrap gap-3">
+                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Klinikal'].map(opt => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setNewCourse(p => ({ ...p, teachingSubPractical: opt }))}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+                              (newCourse.teachingSubPractical || 'Makmal Komputer') === opt
+                              ? 'bg-amber-500 border-amber-500 text-white'
+                              : 'bg-white border-slate-200 text-slate-600 hover:border-amber-300'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
