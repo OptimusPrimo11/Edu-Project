@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 // ==========================================
 // PRE-LOADED INITIAL DATA (From spreadsheets)
@@ -159,9 +159,19 @@ const INITIAL_COURSES = [
 
 export default function App() {
   // State variables
-  const [faculties, setFaculties] = useState(INITIAL_FACULTIES);
-  const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
-  const [courses, setCourses] = useState(INITIAL_COURSES);
+  const [faculties, setFaculties] = useState(() => {
+    try { const s = localStorage.getItem('edu_faculties'); return s ? JSON.parse(s) : INITIAL_FACULTIES; } catch { return INITIAL_FACULTIES; }
+  });
+  const [programs, setPrograms] = useState(() => {
+    try { const s = localStorage.getItem('edu_programs'); return s ? JSON.parse(s) : INITIAL_PROGRAMS; } catch { return INITIAL_PROGRAMS; }
+  });
+  const [courses, setCourses] = useState(() => {
+    try { const s = localStorage.getItem('edu_courses'); return s ? JSON.parse(s) : INITIAL_COURSES; } catch { return INITIAL_COURSES; }
+  });
+
+  useEffect(() => { localStorage.setItem('edu_faculties', JSON.stringify(faculties)); }, [faculties]);
+  useEffect(() => { localStorage.setItem('edu_programs', JSON.stringify(programs)); }, [programs]);
+  useEffect(() => { localStorage.setItem('edu_courses', JSON.stringify(courses)); }, [courses]);
 
   // Filter state for dashboard
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('All');
