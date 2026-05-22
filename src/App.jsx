@@ -194,6 +194,12 @@ export default function App() {
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('All');
   const [selectedProgramFilter, setSelectedProgramFilter] = useState('All');
 
+  // Filter state for Manage Courses table
+  const [courseSearch, setCourseSearch] = useState('');
+  const [courseFilterFaculty, setCourseFilterFaculty] = useState('All');
+  const [courseFilterType, setCourseFilterType] = useState('All');
+  const [courseFilterProBody, setCourseFilterProBody] = useState('All');
+
   // Navigation tabs
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'wizard' | 'courses' | 'programs'
 
@@ -294,6 +300,19 @@ export default function App() {
       return matchFaculty && matchProgram;
     });
   }, [courses, selectedFacultyFilter, selectedProgramFilter]);
+
+  // Filtered courses for Manage Courses table
+  const filteredCoursesTable = useMemo(() => {
+    return courses.filter(c => {
+      const matchSearch = courseSearch === '' ||
+        c.code.toLowerCase().includes(courseSearch.toLowerCase()) ||
+        c.name.toLowerCase().includes(courseSearch.toLowerCase());
+      const matchFaculty = courseFilterFaculty === 'All' || c.facultyId === courseFilterFaculty;
+      const matchType = courseFilterType === 'All' || c.courseType === courseFilterType;
+      const matchProBody = courseFilterProBody === 'All' || c.professionalBody === courseFilterProBody;
+      return matchSearch && matchFaculty && matchType && matchProBody;
+    });
+  }, [courses, courseSearch, courseFilterFaculty, courseFilterType, courseFilterProBody]);
 
   // Compute stats for Dashboard
   const stats = useMemo(() => {
@@ -1622,10 +1641,74 @@ export default function App() {
 
             {/* FULL COURSE DATABASE TABLE */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900">Total Classified Database</h3>
-                  <p className="text-xs text-slate-400">View and manage all designated course configurations.</p>
+              <div className="px-6 py-4 border-b border-slate-100">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0 mb-4">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Total Classified Database</h3>
+                    <p className="text-xs text-slate-400">View and manage all designated course configurations.</p>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">
+                    {filteredCoursesTable.length} of {courses.length} courses
+                  </span>
+                </div>
+                {/* SEARCH & FILTER BAR */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Search Code & Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. KMY1023 or Software..."
+                      value={courseSearch}
+                      onChange={(e) => setCourseSearch(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Academic Scope</label>
+                    <select
+                      value={courseFilterFaculty}
+                      onChange={(e) => setCourseFilterFaculty(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                    >
+                      <option value="All">All Faculties</option>
+                      {faculties.map(f => (
+                        <option key={f.id} value={f.id}>{f.code} - {f.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category Type</label>
+                    <select
+                      value={courseFilterType}
+                      onChange={(e) => setCourseFilterType(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                    >
+                      <option value="All">All Types</option>
+                      {['Teras', 'Elektif', 'MPU', 'Latihan Industri', 'Kokurikulum', 'Generik Bahasa'].map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pro Body</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={courseFilterProBody}
+                        onChange={(e) => setCourseFilterProBody(e.target.value)}
+                        className="flex-1 bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                      >
+                        <option value="All">All</option>
+                        <option value="Ya">Ya (Yes)</option>
+                        <option value="Tidak">Tidak (No)</option>
+                      </select>
+                      <button
+                        onClick={() => { setCourseSearch(''); setCourseFilterFaculty('All'); setCourseFilterType('All'); setCourseFilterProBody('All'); }}
+                        className="px-3 py-2 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors whitespace-nowrap"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1642,7 +1725,13 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {courses.map(c => {
+                    {filteredCoursesTable.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
+                          No courses match your filter criteria.
+                        </td>
+                      </tr>
+                    ) : filteredCoursesTable.map(c => {
                       const fac = faculties.find(f => f.id === c.facultyId);
                       const prog = programs.find(p => p.id === c.programId);
                       return (
