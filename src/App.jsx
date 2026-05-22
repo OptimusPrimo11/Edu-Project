@@ -211,6 +211,7 @@ export default function App() {
     code: '',
     name: '',
     courseType: 'Teras',
+    liSubType: '',
     year: 'Tahun 1',
     semester: 'Semester 1',
     professionalBody: 'Tidak',
@@ -234,6 +235,7 @@ export default function App() {
     code: '',
     name: '',
     courseType: 'Teras',
+    liSubType: '',
     professionalBody: 'Tidak',
     teachingMode: 'Teori',
     teachingSubTeori: 'Online',
@@ -272,7 +274,7 @@ export default function App() {
           `"${c.semester}"`,
           `"${c.code}"`,
           `"${c.name}"`,
-          `"${c.courseType}"`,
+          `"${c.courseType}${c.liSubType ? ': ' + c.liSubType : ''}"`,
           `"${c.professionalBody}"`,
           `"${c.deliveryMode}"`,
           `"${c.teachingActivity}"`,
@@ -397,6 +399,7 @@ export default function App() {
       code: wizardData.code,
       name: wizardData.name,
       courseType: wizardData.courseType,
+      liSubType: wizardData.liSubType || '',
       professionalBody: wizardData.professionalBody,
       deliveryMode: wizardData.suggestedMode,
       teachingActivity: wizardData.teachingActivity,
@@ -521,6 +524,7 @@ export default function App() {
       code: '',
       name: '',
       courseType: 'Teras',
+      liSubType: '',
       professionalBody: 'Tidak',
       teachingMode: 'Teori',
       teachingSubTeori: 'Online',
@@ -1035,6 +1039,9 @@ export default function App() {
                               }`}>
                                 {c.courseType}
                               </span>
+                              {c.courseType === 'Latihan Industri' && c.liSubType && (
+                                <div className="text-[10px] text-rose-600 font-semibold mt-0.5">{c.liSubType}</div>
+                              )}
                             </td>
                             <td className="px-6 py-4">
                               <span className={`font-semibold px-2 py-0.5 rounded ${
@@ -1158,7 +1165,7 @@ export default function App() {
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Course Type</label>
                       <select
                         value={wizardData.courseType}
-                        onChange={(e) => handleWizardChange('courseType', e.target.value)}
+                        onChange={(e) => { handleWizardChange('courseType', e.target.value); handleWizardChange('liSubType', ''); }}
                         className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700"
                       >
                         <option value="Teras">Teras (Core)</option>
@@ -1168,6 +1175,21 @@ export default function App() {
                         <option value="Kokurikulum">Kokurikulum (Co-curriculum)</option>
                         <option value="Generik Bahasa">Generik Bahasa (Languages)</option>
                       </select>
+                      {wizardData.courseType === 'Latihan Industri' && (
+                        <div className="mt-2">
+                          <label className="block text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Jenis Latihan Industri</label>
+                          <select
+                            value={wizardData.liSubType || ''}
+                            onChange={(e) => handleWizardChange('liSubType', e.target.value)}
+                            className="w-full bg-rose-50 border border-rose-200 text-rose-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-400 text-xs font-semibold"
+                          >
+                            <option value="">-- Pilih Jenis --</option>
+                            <option value="Latihan Industri secara online">Secara Online</option>
+                            <option value="Latihan Industri di lokasi agensi luar">Di Lokasi Agensi Luar</option>
+                            <option value="Latihan Industri di kampus UNIMAS">Di Kampus UNIMAS</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -1538,7 +1560,7 @@ export default function App() {
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Course Type (Jenis Kursus)</label>
                     <select
                       value={newCourse.courseType}
-                      onChange={(e) => setNewCourse(p => ({ ...p, courseType: e.target.value }))}
+                      onChange={(e) => setNewCourse(p => ({ ...p, courseType: e.target.value, liSubType: '' }))}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
                     >
                       <option value="Teras">Teras (Core)</option>
@@ -1548,6 +1570,21 @@ export default function App() {
                       <option value="Kokurikulum">Kokurikulum (Co-curriculum)</option>
                       <option value="Generik Bahasa">Generik Bahasa (Languages)</option>
                     </select>
+                    {newCourse.courseType === 'Latihan Industri' && (
+                      <div className="mt-2">
+                        <label className="block text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Jenis Latihan Industri</label>
+                        <select
+                          value={newCourse.liSubType || ''}
+                          onChange={(e) => setNewCourse(p => ({ ...p, liSubType: e.target.value }))}
+                          className="w-full bg-rose-50 border border-rose-200 text-rose-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-400 text-xs font-semibold"
+                        >
+                          <option value="">-- Pilih Jenis --</option>
+                          <option value="Latihan Industri secara online">Secara Online</option>
+                          <option value="Latihan Industri di lokasi agensi luar">Di Lokasi Agensi Luar</option>
+                          <option value="Latihan Industri di kampus UNIMAS">Di Kampus UNIMAS</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -1820,6 +1857,9 @@ export default function App() {
                             <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                               {c.courseType}
                             </span>
+                            {c.courseType === 'Latihan Industri' && c.liSubType && (
+                              <div className="text-[10px] text-rose-600 font-semibold mt-1">{c.liSubType}</div>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-0.5 rounded font-semibold ${
