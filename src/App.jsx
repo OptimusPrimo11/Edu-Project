@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import COURSE_LIST from './courseList.js';
 import { db } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 // ==========================================
 // PRE-LOADED INITIAL DATA (From spreadsheets)
@@ -164,34 +164,64 @@ export default function App() {
   // State variables
   const [loading, setLoading] = useState(true);
   const hasLoaded = useRef(false);
+  // Per-collection flags: true while a Firestore snapshot is being applied (prevents write-back loop)
+  const fromFirestoreFac = useRef(false);
+  const fromFirestoreProg = useRef(false);
+  const fromFirestoreCourse = useRef(false);
+  // Track which collections have received their first snapshot
+  const facReady = useRef(false);
+  const progReady = useRef(false);
+  const courseReady = useRef(false);
   const [faculties, setFaculties] = useState(INITIAL_FACULTIES);
   const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
   const [courses, setCourses] = useState(INITIAL_COURSES);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [facSnap, progSnap, courseSnap] = await Promise.all([
-          getDoc(doc(db, 'edudata', 'faculties')),
-          getDoc(doc(db, 'edudata', 'programs')),
-          getDoc(doc(db, 'edudata', 'courses')),
-        ]);
-        if (facSnap.exists()) setFaculties(facSnap.data().items);
-        if (progSnap.exists()) setPrograms(progSnap.data().items);
-        if (courseSnap.exists()) setCourses(courseSnap.data().items);
-      } catch (err) {
-        console.error('Failed to load data from Firestore:', err);
-      } finally {
+    const checkAllReady = () => {
+      if (!hasLoaded.current && facReady.current && progReady.current && courseReady.current) {
         hasLoaded.current = true;
         setLoading(false);
       }
     };
-    loadData();
+    const unsubFac = onSnapshot(
+      doc(db, 'edudata', 'faculties'),
+      (snap) => {
+        if (snap.exists()) { fromFirestoreFac.current = true; setFaculties(snap.data().items); }
+        facReady.current = true; checkAllReady();
+      },
+      (err) => { console.error('Faculties listener error:', err); facReady.current = true; checkAllReady(); }
+    );
+    const unsubProg = onSnapshot(
+      doc(db, 'edudata', 'programs'),
+      (snap) => {
+        if (snap.exists()) { fromFirestoreProg.current = true; setPrograms(snap.data().items); }
+        progReady.current = true; checkAllReady();
+      },
+      (err) => { console.error('Programs listener error:', err); progReady.current = true; checkAllReady(); }
+    );
+    const unsubCourse = onSnapshot(
+      doc(db, 'edudata', 'courses'),
+      (snap) => {
+        if (snap.exists()) { fromFirestoreCourse.current = true; setCourses(snap.data().items); }
+        courseReady.current = true; checkAllReady();
+      },
+      (err) => { console.error('Courses listener error:', err); courseReady.current = true; checkAllReady(); }
+    );
+    return () => { unsubFac(); unsubProg(); unsubCourse(); };
   }, []);
 
-  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties }); }, [faculties]);
-  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'programs'), { items: programs }); }, [programs]);
-  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'courses'), { items: courses }); }, [courses]);
+  useEffect(() => {
+    if (fromFirestoreFac.current) { fromFirestoreFac.current = false; return; }
+    if (hasLoaded.current) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties });
+  }, [faculties]);
+  useEffect(() => {
+    if (fromFirestoreProg.current) { fromFirestoreProg.current = false; return; }
+    if (hasLoaded.current) setDoc(doc(db, 'edudata', 'programs'), { items: programs });
+  }, [programs]);
+  useEffect(() => {
+    if (fromFirestoreCourse.current) { fromFirestoreCourse.current = false; return; }
+    if (hasLoaded.current) setDoc(doc(db, 'edudata', 'courses'), { items: courses });
+  }, [courses]);
 
   // Filter state for dashboard
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('All');
