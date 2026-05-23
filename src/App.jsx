@@ -239,7 +239,7 @@ export default function App() {
     courseType: 'Teras',
     liSubType: '',
     professionalBody: 'Tidak',
-    teachingMode: 'Teori',
+    teachingMode: 'Theory (Knowledge-based)',
     teachingSubTeori: 'Online',
     teachingSubPractical: 'Makmal Komputer',
     teachingActivity: 'Online',
@@ -510,13 +510,15 @@ export default function App() {
       return;
     }
 
-    const tm = newCourse.teachingMode || 'Teori';
+    const tm = newCourse.teachingMode || 'Theory (Knowledge-based)';
     const subTeori = newCourse.teachingSubTeori || 'Online';
     const subPractical = newCourse.teachingSubPractical || 'Makmal Komputer';
     let composedTeaching = '';
     let derivedDeliveryMode = 'Mode 1: Theory';
-    if (tm === 'Teori') { composedTeaching = subTeori; derivedDeliveryMode = 'Mode 1: Theory'; }
-    else if (tm === 'Practical (Physical)') { composedTeaching = subPractical; derivedDeliveryMode = 'Mode 2: Practical'; }
+    if (newCourse.courseType === 'Latihan Industri' && newCourse.liSubType === 'Online') {
+      composedTeaching = 'Online (Latihan Industri)'; derivedDeliveryMode = 'Mode 1: Theory';
+    } else if (tm === 'Theory (Knowledge-based)') { composedTeaching = subTeori; derivedDeliveryMode = 'Mode 1: Theory'; }
+    else if (tm === 'Practical (Performance-based)') { composedTeaching = subPractical; derivedDeliveryMode = 'Mode 2: Practical'; }
     else { composedTeaching = `${subTeori} + ${subPractical}`; derivedDeliveryMode = 'Mode 3: Theory + Practical'; }
 
     const courseData = {
@@ -543,7 +545,7 @@ export default function App() {
       courseType: 'Teras',
       liSubType: '',
       professionalBody: 'Tidak',
-      teachingMode: 'Teori',
+      teachingMode: 'Theory (Knowledge-based)',
       teachingSubTeori: 'Online',
       teachingSubPractical: 'Makmal Komputer',
       teachingActivity: 'Online',
@@ -563,17 +565,17 @@ export default function App() {
   const handleEditCourse = (course) => {
     setEditingCourseId(course.id);
     // Parse teachingActivity into cascading fields if not already stored
-    let teachingMode = course.teachingMode || 'Teori';
+    let teachingMode = course.teachingMode || 'Theory (Knowledge-based)';
     let teachingSubTeori = course.teachingSubTeori || 'Online';
     let teachingSubPractical = course.teachingSubPractical || 'Makmal Komputer';
     if (!course.teachingMode) {
       const ta = course.teachingActivity || '';
-      const practicalOptions = ['Makmal Sains', 'Makmal Komputer', 'Studio', 'Clinical/Medical Attachment'];
+      const practicalOptions = ['Makmal Sains', 'Makmal Komputer', 'Studio', 'Workshop', 'Clinical/Medical Attachment', 'Makmal Kaunseling/Psikologi', 'Kerja Lapangan'];
       const hasPractical = practicalOptions.some(o => ta.includes(o));
       const hasTeori = ta.includes('Online') || ta.includes('Hybrid') || ta.includes('Hibrid');
-      if (hasPractical && hasTeori) teachingMode = 'Teori + Practical (Physical)';
-      else if (hasPractical) teachingMode = 'Practical (Physical)';
-      else teachingMode = 'Teori';
+      if (hasPractical && hasTeori) teachingMode = 'Mix (Theory & Practical)';
+      else if (hasPractical) teachingMode = 'Practical (Performance-based)';
+      else teachingMode = 'Theory (Knowledge-based)';
       if (ta.includes('Hybrid') || ta.includes('Hibrid')) teachingSubTeori = 'Hybrid';
       const matchedPractical = practicalOptions.find(o => ta.includes(o));
       if (matchedPractical) teachingSubPractical = matchedPractical;
@@ -1194,16 +1196,17 @@ export default function App() {
                       </select>
                       {wizardData.courseType === 'Latihan Industri' && (
                         <div className="mt-2">
-                          <label className="block text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Jenis Latihan Industri</label>
+                          <label className="block text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Latihan Industri Type</label>
                           <select
                             value={wizardData.liSubType || ''}
                             onChange={(e) => handleWizardChange('liSubType', e.target.value)}
                             className="w-full bg-rose-50 border border-rose-200 text-rose-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-400 text-xs font-semibold"
                           >
                             <option value="">-- Pilih Jenis --</option>
-                            <option value="Latihan Industri secara online">Secara Online</option>
-                            <option value="Latihan Industri di lokasi agensi luar">Di Lokasi Agensi Luar</option>
-                            <option value="Latihan Industri di kampus UNIMAS">Di Kampus UNIMAS</option>
+                            <option value="Di Agensi">Di Agensi</option>
+                            <option value="Online">Online</option>
+                            <option value="Hibrid (Beberapa hari di Agensi)">Hibrid (Beberapa hari di Agensi)</option>
+                            <option value="Di Kampus">Di Kampus</option>
                           </select>
                         </div>
                       )}
@@ -1334,7 +1337,10 @@ export default function App() {
                         <option value="Makmal Sains">Makmal Sains (Science Lab)</option>
                         <option value="Makmal Komputer">Makmal Komputer (Computer Lab)</option>
                         <option value="Studio">Studio (Design/Art Studio)</option>
-                        <option value="Clinical/Medical Attachment">Clinical/Medical Attachment (Clinical / Medical Setup)</option>
+                        <option value="Workshop">Workshop</option>
+                        <option value="Clinical/Medical Attachment">Clinical/Medical Attachment</option>
+                        <option value="Makmal Kaunseling/Psikologi">Makmal Kaunseling/Psikologi</option>
+                        <option value="Kerja Lapangan">Kerja Lapangan</option>
                       </select>
                     </div>
                   )}
@@ -1590,16 +1596,17 @@ export default function App() {
                     </select>
                     {newCourse.courseType === 'Latihan Industri' && (
                       <div className="mt-2">
-                        <label className="block text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Jenis Latihan Industri</label>
+                        <label className="block text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Latihan Industri Type</label>
                         <select
                           value={newCourse.liSubType || ''}
                           onChange={(e) => setNewCourse(p => ({ ...p, liSubType: e.target.value }))}
                           className="w-full bg-rose-50 border border-rose-200 text-rose-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-400 text-xs font-semibold"
                         >
                           <option value="">-- Pilih Jenis --</option>
-                          <option value="Latihan Industri secara online">Secara Online</option>
-                          <option value="Latihan Industri di lokasi agensi luar">Di Lokasi Agensi Luar</option>
-                          <option value="Latihan Industri di kampus UNIMAS">Di Kampus UNIMAS</option>
+                          <option value="Di Agensi">Di Agensi</option>
+                          <option value="Online">Online</option>
+                          <option value="Hibrid (Beberapa hari di Agensi)">Hibrid (Beberapa hari di Agensi)</option>
+                          <option value="Di Kampus">Di Kampus</option>
                         </select>
                       </div>
                     )}
@@ -1617,24 +1624,26 @@ export default function App() {
                     </select>
                   </div>
 
+                  {!(newCourse.courseType === 'Latihan Industri' && newCourse.liSubType === 'Online') && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Aktiviti Pengajaran (Teach)</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teaching Activity</label>
                     <select
-                      value={newCourse.teachingMode || 'Teori'}
+                      value={newCourse.teachingMode || 'Theory (Knowledge-based)'}
                       onChange={(e) => setNewCourse(p => ({ ...p, teachingMode: e.target.value }))}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-semibold"
                     >
-                      <option value="Teori">Teori</option>
-                      <option value="Practical (Physical)">Practical (Physical)</option>
-                      <option value="Teori + Practical (Physical)">Teori + Practical (Physical)</option>
+                      <option value="Theory (Knowledge-based)">Theory (Knowledge-based)</option>
+                      <option value="Practical (Performance-based)">Practical (Performance-based)</option>
+                      <option value="Mix (Theory & Practical)">Mix (Theory &amp; Practical)</option>
                     </select>
                   </div>
+                  )}
                 </div>
 
-                {/* CASCADING SUB-SELECTS FOR AKTIVITI PENGAJARAN */}
-                {(newCourse.teachingMode === 'Teori' || newCourse.teachingMode === 'Teori + Practical (Physical)' || !newCourse.teachingMode) && (
+                {/* CASCADING SUB-SELECTS FOR TEACHING ACTIVITY */}
+                {!(newCourse.courseType === 'Latihan Industri' && newCourse.liSubType === 'Online') && (newCourse.teachingMode === 'Theory (Knowledge-based)' || newCourse.teachingMode === 'Mix (Theory & Practical)' || !newCourse.teachingMode) && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                    <div className="md:col-span-2 text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Teori Sub-options</div>
+                    <div className="md:col-span-2 text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Theory Sub-options</div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Delivery Method</label>
                       <div className="flex gap-3">
@@ -1657,13 +1666,13 @@ export default function App() {
                   </div>
                 )}
 
-                {(newCourse.teachingMode === 'Practical (Physical)' || newCourse.teachingMode === 'Teori + Practical (Physical)') && (
+                {!(newCourse.courseType === 'Latihan Industri' && newCourse.liSubType === 'Online') && (newCourse.teachingMode === 'Practical (Performance-based)' || newCourse.teachingMode === 'Mix (Theory & Practical)') && (
                   <div className="grid grid-cols-1 gap-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                    <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Practical (Physical) Sub-options</div>
+                    <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Practical Sub-options</div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Practical Location / Environment</label>
                       <div className="flex flex-wrap gap-3">
-                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Workshop', 'Clinical/Medical Attachment'].map(opt => (
+                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Workshop', 'Clinical/Medical Attachment', 'Makmal Kaunseling/Psikologi', 'Kerja Lapangan'].map(opt => (
                           <button
                             key={opt}
                             type="button"
