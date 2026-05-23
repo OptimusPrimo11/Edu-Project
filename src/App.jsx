@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import COURSE_LIST from './courseList.js';
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -251,6 +252,13 @@ export default function App() {
   // Editing state
   const [editingCourseId, setEditingCourseId] = useState(null);
 
+  // Course combobox state (Manage Courses form)
+  const [courseComboInput, setCourseComboInput] = useState('');
+  const [courseComboOpen, setCourseComboOpen] = useState(false);
+  // Course combobox state (Wizard form)
+  const [wizardComboInput, setWizardComboInput] = useState('');
+  const [wizardComboOpen, setWizardComboOpen] = useState(false);
+
   // Helper trigger for alert message
   const triggerNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -319,6 +327,23 @@ export default function App() {
       return matchSearch && matchFaculty && matchType && matchProBody;
     });
   }, [courses, courseSearch, courseFilterFaculty, courseFilterType, courseFilterProBody]);
+
+  // Filtered COURSE_LIST for comboboxes
+  const courseComboResults = useMemo(() => {
+    if (!courseComboInput.trim()) return [];
+    const q = courseComboInput.toLowerCase();
+    return COURSE_LIST.filter(c =>
+      c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+    ).slice(0, 30);
+  }, [courseComboInput]);
+
+  const wizardComboResults = useMemo(() => {
+    if (!wizardComboInput.trim()) return [];
+    const q = wizardComboInput.toLowerCase();
+    return COURSE_LIST.filter(c =>
+      c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+    ).slice(0, 30);
+  }, [wizardComboInput]);
 
   // Compute stats for Dashboard
   const stats = useMemo(() => {
@@ -553,6 +578,7 @@ export default function App() {
       year: 'Tahun 1',
       semester: 'Semester 1'
     });
+    setCourseComboInput('');
   };
 
   const handleDeleteCourse = (id) => {
@@ -581,6 +607,7 @@ export default function App() {
       if (matchedPractical) teachingSubPractical = matchedPractical;
     }
     setNewCourse({ ...course, teachingMode, teachingSubTeori, teachingSubPractical });
+    setCourseComboInput(course.code && course.name ? `${course.code} - ${course.name}` : '');
     setActiveTab('courses');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1155,6 +1182,57 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* ── Wizard course search combobox ── */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Search &amp; Select Course
+                      <span className="ml-2 font-normal normal-case text-slate-400 text-[10px]">or fill Code &amp; Name below manually</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Type course code or name to search (e.g. 'KMY' or 'Psychology')…"
+                        value={wizardComboInput}
+                        onChange={(e) => { setWizardComboInput(e.target.value); setWizardComboOpen(true); }}
+                        onFocus={() => { if (wizardComboInput.trim()) setWizardComboOpen(true); }}
+                        onBlur={() => setTimeout(() => setWizardComboOpen(false), 150)}
+                        className="w-full bg-indigo-50 border border-indigo-200 text-slate-800 py-2.5 px-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-xs"
+                      />
+                      {wizardComboInput && (
+                        <button
+                          type="button"
+                          onMouseDown={() => { setWizardComboInput(''); setWizardComboOpen(false); }}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 font-bold text-base leading-none"
+                        >×</button>
+                      )}
+                      {wizardComboOpen && wizardComboResults.length > 0 && (
+                        <div className="absolute z-50 top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto mt-1">
+                          {wizardComboResults.map(c => (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onMouseDown={() => {
+                                handleWizardChange('code', c.code);
+                                handleWizardChange('name', c.name);
+                                setWizardComboInput(`${c.code} - ${c.name}`);
+                                setWizardComboOpen(false);
+                              }}
+                              className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 border-b border-slate-100 last:border-b-0 flex items-center gap-3"
+                            >
+                              <span className="font-mono font-bold text-indigo-700 text-[11px] shrink-0 w-24 truncate">{c.code}</span>
+                              <span className="text-slate-600 text-[11px] truncate">{c.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {wizardComboOpen && wizardComboInput.trim() && wizardComboResults.length === 0 && (
+                        <div className="absolute z-50 top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl mt-1 px-3 py-3 text-[11px] text-slate-400 italic">
+                          No matches — enter Code and Name manually in the fields below.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Course Code</label>
@@ -1517,6 +1595,57 @@ export default function App() {
               </div>
 
               <form onSubmit={handleAddCourseManual} className="p-6 space-y-4">
+
+                {/* ── Course search combobox ── */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    Search &amp; Select Course
+                    <span className="ml-2 font-normal normal-case text-slate-400 text-[10px]">or fill Code &amp; Name fields manually below</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Type course code or name to search (e.g. 'KMY' or 'Psychology')…"
+                      value={courseComboInput}
+                      onChange={(e) => { setCourseComboInput(e.target.value); setCourseComboOpen(true); }}
+                      onFocus={() => { if (courseComboInput.trim()) setCourseComboOpen(true); }}
+                      onBlur={() => setTimeout(() => setCourseComboOpen(false), 150)}
+                      className="w-full bg-indigo-50 border border-indigo-200 text-slate-800 py-2.5 px-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-xs"
+                    />
+                    {courseComboInput && (
+                      <button
+                        type="button"
+                        onMouseDown={() => { setCourseComboInput(''); setCourseComboOpen(false); }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 font-bold text-base leading-none"
+                      >×</button>
+                    )}
+                    {courseComboOpen && courseComboResults.length > 0 && (
+                      <div className="absolute z-50 top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto mt-1">
+                        {courseComboResults.map(c => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onMouseDown={() => {
+                              setNewCourse(p => ({ ...p, code: c.code, name: c.name }));
+                              setCourseComboInput(`${c.code} - ${c.name}`);
+                              setCourseComboOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 border-b border-slate-100 last:border-b-0 flex items-center gap-3"
+                          >
+                            <span className="font-mono font-bold text-indigo-700 text-[11px] shrink-0 w-24 truncate">{c.code}</span>
+                            <span className="text-slate-600 text-[11px] truncate">{c.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {courseComboOpen && courseComboInput.trim() && courseComboResults.length === 0 && (
+                      <div className="absolute z-50 top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl mt-1 px-3 py-3 text-[11px] text-slate-400 italic">
+                        No matches — enter Code and Name manually in the fields below.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Faculty</label>
