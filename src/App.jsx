@@ -232,6 +232,8 @@ export default function App() {
   const [editingFacultyId, setEditingFacultyId] = useState(null);
   const [editFacultyData, setEditFacultyData] = useState({ code: '', name: '' });
   const [newProgram, setNewProgram] = useState({ facultyId: '', name: '' });
+  const [editingProgramId, setEditingProgramId] = useState(null);
+  const [editProgramData, setEditProgramData] = useState({ name: '', facultyId: '' });
   const [newCourse, setNewCourse] = useState({
     facultyId: '',
     programId: '',
@@ -526,6 +528,31 @@ export default function App() {
     setPrograms(prev => [...prev, { id: newId, facultyId: newProgram.facultyId, name: newProgram.name }]);
     setNewProgram({ facultyId: '', name: '' });
     triggerNotification("New Program added successfully!");
+  };
+
+  const handleStartEditProgram = (p) => {
+    setEditingProgramId(p.id);
+    setEditProgramData({ name: p.name, facultyId: p.facultyId });
+  };
+
+  const handleSaveProgram = (id) => {
+    if (!editProgramData.name.trim()) {
+      triggerNotification("Program Name cannot be empty", "error");
+      return;
+    }
+    setPrograms(prev => prev.map(p => p.id === id ? { ...p, name: editProgramData.name, facultyId: editProgramData.facultyId } : p));
+    setEditingProgramId(null);
+    triggerNotification("Program updated successfully!");
+  };
+
+  const handleDeleteProgram = (id) => {
+    const cCount = courses.filter(c => c.programId === id).length;
+    const msg = cCount > 0
+      ? `This program has ${cCount} course(s) assigned. Deleting it will leave those courses without a program. Continue?`
+      : "Are you sure you want to delete this program?";
+    if (!window.confirm(msg)) return;
+    setPrograms(prev => prev.filter(p => p.id !== id));
+    triggerNotification("Program deleted.");
   };
 
   const handleAddCourseManual = (e) => {
@@ -2228,15 +2255,57 @@ export default function App() {
                   {programs.map(p => {
                     const fCode = faculties.find(f => f.id === p.facultyId)?.code || 'N/A';
                     const cCount = courses.filter(c => c.programId === p.id).length;
+                    const isEditing = editingProgramId === p.id;
                     return (
-                      <div key={p.id} className="p-4 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row justify-between sm:items-center space-y-2 sm:space-y-0">
-                        <div>
-                          <div className="font-extrabold text-slate-800 text-xs">{p.name}</div>
-                          <span className="text-[10px] text-slate-400">Faculty Code: <span className="font-bold text-indigo-700">{fCode}</span></span>
-                        </div>
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold self-start sm:self-auto">
-                          {cCount} active courses
-                        </span>
+                      <div key={p.id} className="p-4 hover:bg-slate-50 transition-colors">
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <select
+                              value={editProgramData.facultyId}
+                              onChange={(e) => setEditProgramData(prev => ({ ...prev, facultyId: e.target.value }))}
+                              className="w-full bg-white border border-indigo-300 text-slate-800 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                            >
+                              {faculties.map(f => (
+                                <option key={f.id} value={f.id}>{f.code} - {f.name}</option>
+                              ))}
+                            </select>
+                            <input
+                              type="text"
+                              value={editProgramData.name}
+                              onChange={(e) => setEditProgramData(prev => ({ ...prev, name: e.target.value }))}
+                              className="w-full bg-white border border-indigo-300 text-slate-800 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+                              placeholder="Program Name"
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => handleSaveProgram(p.id)}
+                                className="px-3 py-1 text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                              >Save</button>
+                              <button
+                                onClick={() => setEditingProgramId(null)}
+                                className="px-3 py-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+                              >Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center space-y-2 sm:space-y-0">
+                            <div>
+                              <div className="font-extrabold text-slate-800 text-xs">{p.name}</div>
+                              <span className="text-[10px] text-slate-400">Faculty Code: <span className="font-bold text-indigo-700">{fCode}</span></span>
+                            </div>
+                            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">{cCount} courses</span>
+                              <button
+                                onClick={() => handleStartEditProgram(p)}
+                                className="px-2.5 py-1 text-[10px] bg-slate-100 text-slate-700 font-bold rounded hover:bg-indigo-600 hover:text-white transition-colors"
+                              >Edit</button>
+                              <button
+                                onClick={() => handleDeleteProgram(p.id)}
+                                className="px-2.5 py-1 text-[10px] bg-slate-100 text-slate-700 font-bold rounded hover:bg-red-600 hover:text-white transition-colors"
+                              >Delete</button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
