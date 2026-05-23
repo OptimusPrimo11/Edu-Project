@@ -1220,6 +1220,7 @@ export default function App() {
                         <option value="Tahun 2">Tahun 2</option>
                         <option value="Tahun 3">Tahun 3</option>
                         <option value="Tahun 4">Tahun 4</option>
+                        <option value="Tahun 5">Tahun 5</option>
                       </select>
                     </div>
 
@@ -1232,7 +1233,7 @@ export default function App() {
                       >
                         <option value="Semester 1">Semester 1</option>
                         <option value="Semester 2">Semester 2</option>
-                        <option value="Semester Khas">Semester Khas</option>
+                        <option value="Semester 3">Semester 3</option>
                       </select>
                     </div>
                   </div>
@@ -1662,7 +1663,7 @@ export default function App() {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Practical Location / Environment</label>
                       <div className="flex flex-wrap gap-3">
-                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Clinical/Medical Attachment'].map(opt => (
+                        {['Makmal Sains', 'Makmal Komputer', 'Studio', 'Workshop', 'Clinical/Medical Attachment'].map(opt => (
                           <button
                             key={opt}
                             type="button"
@@ -1681,9 +1682,9 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Penilaian (Assessment)</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assessment</label>
                     <select
                       value={newCourse.assessmentActivity}
                       onChange={(e) => setNewCourse(p => ({ ...p, assessmentActivity: e.target.value }))}
@@ -1691,12 +1692,13 @@ export default function App() {
                     >
                       <option value="Online Penuh">Online Penuh</option>
                       <option value="Hibrid">Hibrid</option>
-                      <option value="Fizikal (Bukan amali)">Fizikal (Bukan amali)</option>
                       <option value="Fizikal (Keperluan amali)">Fizikal (Keperluan amali)</option>
                       <option value="Fizikal (Sekatan Badan Professional)">Fizikal (Sekatan Badan Professional)</option>
                     </select>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Year / Tahun</label>
                     <select
@@ -1708,6 +1710,7 @@ export default function App() {
                       <option value="Tahun 2">Tahun 2</option>
                       <option value="Tahun 3">Tahun 3</option>
                       <option value="Tahun 4">Tahun 4</option>
+                      <option value="Tahun 5">Tahun 5</option>
                     </select>
                   </div>
 
@@ -1720,7 +1723,7 @@ export default function App() {
                     >
                       <option value="Semester 1">Semester 1</option>
                       <option value="Semester 2">Semester 2</option>
-                      <option value="Semester Khas">Semester Khas</option>
+                      <option value="Semester 3">Semester 3</option>
                     </select>
                   </div>
                 </div>
