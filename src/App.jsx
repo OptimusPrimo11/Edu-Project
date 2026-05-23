@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import COURSE_LIST from './courseList.js';
 import { db } from './firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, getDocFromServer, setDoc } from 'firebase/firestore';
 
 // ==========================================
 // PRE-LOADED INITIAL DATA (From spreadsheets)
@@ -163,65 +163,36 @@ const INITIAL_COURSES = [
 export default function App() {
   // State variables
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const hasLoaded = useRef(false);
-  // Per-collection flags: true while a Firestore snapshot is being applied (prevents write-back loop)
-  const fromFirestoreFac = useRef(false);
-  const fromFirestoreProg = useRef(false);
-  const fromFirestoreCourse = useRef(false);
-  // Track which collections have received their first snapshot
-  const facReady = useRef(false);
-  const progReady = useRef(false);
-  const courseReady = useRef(false);
   const [faculties, setFaculties] = useState(INITIAL_FACULTIES);
   const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
   const [courses, setCourses] = useState(INITIAL_COURSES);
 
   useEffect(() => {
-    const checkAllReady = () => {
-      if (!hasLoaded.current && facReady.current && progReady.current && courseReady.current) {
+    const loadData = async () => {
+      try {
+        const [facSnap, progSnap, courseSnap] = await Promise.all([
+          getDocFromServer(doc(db, 'edudata', 'faculties')),
+          getDocFromServer(doc(db, 'edudata', 'programs')),
+          getDocFromServer(doc(db, 'edudata', 'courses')),
+        ]);
+        if (facSnap.exists()) setFaculties(facSnap.data().items);
+        if (progSnap.exists()) setPrograms(progSnap.data().items);
+        if (courseSnap.exists()) setCourses(courseSnap.data().items);
+      } catch (err) {
+        console.error('Failed to load data from Firestore:', err);
+      } finally {
         hasLoaded.current = true;
         setLoading(false);
       }
     };
-    const unsubFac = onSnapshot(
-      doc(db, 'edudata', 'faculties'),
-      (snap) => {
-        if (snap.exists()) { fromFirestoreFac.current = true; setFaculties(snap.data().items); }
-        facReady.current = true; checkAllReady();
-      },
-      (err) => { console.error('Faculties listener error:', err); facReady.current = true; checkAllReady(); }
-    );
-    const unsubProg = onSnapshot(
-      doc(db, 'edudata', 'programs'),
-      (snap) => {
-        if (snap.exists()) { fromFirestoreProg.current = true; setPrograms(snap.data().items); }
-        progReady.current = true; checkAllReady();
-      },
-      (err) => { console.error('Programs listener error:', err); progReady.current = true; checkAllReady(); }
-    );
-    const unsubCourse = onSnapshot(
-      doc(db, 'edudata', 'courses'),
-      (snap) => {
-        if (snap.exists()) { fromFirestoreCourse.current = true; setCourses(snap.data().items); }
-        courseReady.current = true; checkAllReady();
-      },
-      (err) => { console.error('Courses listener error:', err); courseReady.current = true; checkAllReady(); }
-    );
-    return () => { unsubFac(); unsubProg(); unsubCourse(); };
+    loadData();
   }, []);
 
-  useEffect(() => {
-    if (fromFirestoreFac.current) { fromFirestoreFac.current = false; return; }
-    if (hasLoaded.current) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties });
-  }, [faculties]);
-  useEffect(() => {
-    if (fromFirestoreProg.current) { fromFirestoreProg.current = false; return; }
-    if (hasLoaded.current) setDoc(doc(db, 'edudata', 'programs'), { items: programs });
-  }, [programs]);
-  useEffect(() => {
-    if (fromFirestoreCourse.current) { fromFirestoreCourse.current = false; return; }
-    if (hasLoaded.current) setDoc(doc(db, 'edudata', 'courses'), { items: courses });
-  }, [courses]);
+  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties }); }, [faculties]);
+  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'programs'), { items: programs }); }, [programs]);
+  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'courses'), { items: courses }); }, [courses]);
 
   // Filter state for dashboard
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('All');
@@ -292,6 +263,24 @@ export default function App() {
   // Course combobox state (Wizard form)
   const [wizardComboInput, setWizardComboInput] = useState('');
   const [wizardComboOpen, setWizardComboOpen] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const [facSnap, progSnap, courseSnap] = await Promise.all([
+        getDocFromServer(doc(db, 'edudata', 'faculties')),
+        getDocFromServer(doc(db, 'edudata', 'programs')),
+        getDocFromServer(doc(db, 'edudata', 'courses')),
+      ]);
+      if (facSnap.exists()) setFaculties(facSnap.data().items);
+      if (progSnap.exists()) setPrograms(progSnap.data().items);
+      if (courseSnap.exists()) setCourses(courseSnap.data().items);
+    } catch (err) {
+      console.error('Refresh failed:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Helper trigger for alert message
   const triggerNotification = (message, type = 'success') => {
@@ -713,6 +702,19 @@ export default function App() {
             <div className="text-center px-2">
               <div className="font-bold text-emerald-400 text-base">{courses.length}</div>
               <div className="text-slate-300 uppercase tracking-widest text-[9px]">Classified Courses</div>
+            </div>
+            <div className="border-l border-white/20 my-1 ml-2 pl-3 flex items-center">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                title="Fetch latest data from server"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold transition-colors disabled:opacity-50"
+              >
+                <svg className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {refreshing ? 'Updating…' : 'Refresh'}
+              </button>
             </div>
           </div>
         </div>
