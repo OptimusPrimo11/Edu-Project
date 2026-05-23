@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import COURSE_LIST from './courseList.js';
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -163,6 +163,7 @@ const INITIAL_COURSES = [
 export default function App() {
   // State variables
   const [loading, setLoading] = useState(true);
+  const hasLoaded = useRef(false);
   const [faculties, setFaculties] = useState(INITIAL_FACULTIES);
   const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
   const [courses, setCourses] = useState(INITIAL_COURSES);
@@ -181,15 +182,16 @@ export default function App() {
       } catch (err) {
         console.error('Failed to load data from Firestore:', err);
       } finally {
+        hasLoaded.current = true;
         setLoading(false);
       }
     };
     loadData();
   }, []);
 
-  useEffect(() => { if (!loading) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties }); }, [faculties, loading]);
-  useEffect(() => { if (!loading) setDoc(doc(db, 'edudata', 'programs'), { items: programs }); }, [programs, loading]);
-  useEffect(() => { if (!loading) setDoc(doc(db, 'edudata', 'courses'), { items: courses }); }, [courses, loading]);
+  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'faculties'), { items: faculties }); }, [faculties]);
+  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'programs'), { items: programs }); }, [programs]);
+  useEffect(() => { if (hasLoaded.current) setDoc(doc(db, 'edudata', 'courses'), { items: courses }); }, [courses]);
 
   // Filter state for dashboard
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('All');
