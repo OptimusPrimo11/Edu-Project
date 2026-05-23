@@ -625,11 +625,12 @@ export default function App() {
       const ta = course.teachingActivity || '';
       const practicalOptions = ['Makmal Sains', 'Makmal Komputer', 'Studio', 'Workshop', 'Clinical/Medical Attachment', 'Makmal Kaunseling/Psikologi', 'Kerja Lapangan'];
       const hasPractical = practicalOptions.some(o => ta.includes(o));
-      const hasTeori = ta.includes('Online') || ta.includes('Hybrid') || ta.includes('Hibrid');
+      const hasTeori = ta.includes('Online') || ta.includes('Hybrid') || ta.includes('Hibrid') || ta.includes('Physical');
       if (hasPractical && hasTeori) teachingMode = 'Mix (Theory & Practical)';
       else if (hasPractical) teachingMode = 'Practical (Performance-based)';
       else teachingMode = 'Theory (Knowledge-based)';
       if (ta.includes('Hybrid') || ta.includes('Hibrid')) teachingSubTeori = 'Hybrid';
+      else if (ta.includes('Physical')) teachingSubTeori = 'Physical';
       const matchedPractical = practicalOptions.find(o => ta.includes(o));
       if (matchedPractical) teachingSubPractical = matchedPractical;
     }
@@ -1803,7 +1804,7 @@ export default function App() {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Delivery Method</label>
                       <div className="flex gap-3">
-                        {['Online', 'Hybrid'].map(opt => (
+                        {['Online', 'Hybrid', 'Physical'].map(opt => (
                           <button
                             key={opt}
                             type="button"
