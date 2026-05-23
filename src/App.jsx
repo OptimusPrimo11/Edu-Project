@@ -51,7 +51,7 @@ const INITIAL_COURSES = [
     programId: 'p2',
     code: 'TMC1013',
     name: 'Bahasa Mandarin I',
-    courseType: 'Generik Bahasa',
+    courseType: 'Generik/Pengukuhan',
     professionalBody: 'Tidak',
     deliveryMode: 'Mode 1: Theory',
     teachingActivity: 'Online Penuh',
@@ -65,7 +65,7 @@ const INITIAL_COURSES = [
     programId: 'p1',
     code: 'KMC1093',
     name: 'Cognitive Science Foundations',
-    courseType: 'Elektif',
+    courseType: 'Elektif Universiti',
     professionalBody: 'Tidak',
     deliveryMode: 'Mode 1: Theory',
     teachingActivity: 'Hibrid',
@@ -121,7 +121,7 @@ const INITIAL_COURSES = [
     programId: 'p4',
     code: 'PBI1012',
     name: 'Academic English One',
-    courseType: 'Generik Bahasa',
+    courseType: 'Generik/Pengukuhan',
     professionalBody: 'Tidak',
     deliveryMode: 'Mode 1: Theory',
     teachingActivity: 'Online Penuh',
@@ -135,7 +135,7 @@ const INITIAL_COURSES = [
     programId: 'p3',
     code: 'KMY1041',
     name: 'Co-curriculum I',
-    courseType: 'Kokurikulum',
+    courseType: 'Generik/Pengukuhan',
     professionalBody: 'Tidak',
     deliveryMode: 'Mode 2: Practical',
     teachingActivity: 'Fizikal (Keperluan Amali)',
@@ -149,7 +149,7 @@ const INITIAL_COURSES = [
     programId: 'p2',
     code: 'MPU3122',
     name: 'Tamadun Islam dan Tamadun Asia (TITAS)',
-    courseType: 'MPU',
+    courseType: 'MPU (U1-U3)',
     professionalBody: 'Tidak',
     deliveryMode: 'Mode 1: Theory',
     teachingActivity: 'Online Penuh',
@@ -326,14 +326,14 @@ export default function App() {
     if (total === 0) {
       return {
         total: 0,
-        courseTypes: { 'Teras': 0, 'Elektif': 0, 'MPU': 0, 'Latihan Industri': 0, 'Kokurikulum': 0, 'Generik Bahasa': 0 },
+        courseTypes: { 'Teras': 0, 'Elektif Universiti': 0, 'MPU (U1-U3)': 0, 'MPU (U4)': 0, 'Latihan Industri': 0, 'Generik/Pengukuhan': 0 },
         professionalBodyCount: 0,
         professionalBodyPercent: 0,
         deliveryModes: { 'Mode 1: Theory': 0, 'Mode 2: Practical': 0, 'Mode 3: Theory + Practical': 0 }
       };
     }
 
-    const courseTypes = { 'Teras': 0, 'Elektif': 0, 'MPU': 0, 'Latihan Industri': 0, 'Kokurikulum': 0, 'Generik Bahasa': 0 };
+    const courseTypes = { 'Teras': 0, 'Elektif Universiti': 0, 'MPU (U1-U3)': 0, 'MPU (U4)': 0, 'Latihan Industri': 0, 'Generik/Pengukuhan': 0 };
     const deliveryModes = { 'Mode 1: Theory': 0, 'Mode 2: Practical': 0, 'Mode 3: Theory + Practical': 0 };
     let professionalBodyCount = 0;
 
@@ -850,11 +850,11 @@ export default function App() {
                     let bgColor = "bg-indigo-50";
                     let textColor = "text-indigo-600 font-semibold";
                     if (type === 'Teras') { barColor = "bg-sky-600"; bgColor = "bg-sky-50"; textColor="text-sky-700 font-bold"; }
-                    if (type === 'Elektif') { barColor = "bg-amber-500"; bgColor = "bg-amber-50"; textColor="text-amber-700 font-semibold"; }
-                    if (type === 'MPU') { barColor = "bg-teal-500"; bgColor = "bg-teal-50"; textColor="text-teal-700 font-semibold"; }
+                    if (type === 'Elektif Universiti') { barColor = "bg-amber-500"; bgColor = "bg-amber-50"; textColor="text-amber-700 font-semibold"; }
+                    if (type === 'MPU (U1-U3)') { barColor = "bg-teal-500"; bgColor = "bg-teal-50"; textColor="text-teal-700 font-semibold"; }
+                    if (type === 'MPU (U4)') { barColor = "bg-cyan-500"; bgColor = "bg-cyan-50"; textColor="text-cyan-700 font-semibold"; }
                     if (type === 'Latihan Industri') { barColor = "bg-rose-500"; bgColor = "bg-rose-50"; textColor="text-rose-700 font-semibold"; }
-                    if (type === 'Kokurikulum') { barColor = "bg-purple-500"; bgColor = "bg-purple-50"; textColor="text-purple-700 font-semibold"; }
-                    if (type === 'Generik Bahasa') { barColor = "bg-emerald-500"; bgColor = "bg-emerald-50"; textColor="text-emerald-700 font-semibold"; }
+                    if (type === 'Generik/Pengukuhan') { barColor = "bg-emerald-500"; bgColor = "bg-emerald-50"; textColor="text-emerald-700 font-semibold"; }
 
                     return (
                       <div key={type} className="group">
@@ -1048,10 +1048,10 @@ export default function App() {
                             <td className="px-6 py-4">
                               <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                                 c.courseType === 'Teras' ? 'bg-sky-50 text-sky-700 border border-sky-100' :
-                                c.courseType === 'Elektif' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                                c.courseType === 'MPU' ? 'bg-teal-50 text-teal-700 border border-teal-100' :
+                                c.courseType === 'Elektif Universiti' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                c.courseType === 'MPU (U1-U3)' ? 'bg-teal-50 text-teal-700 border border-teal-100' :
+                                c.courseType === 'MPU (U4)' ? 'bg-cyan-50 text-cyan-700 border border-cyan-100' :
                                 c.courseType === 'Latihan Industri' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                                c.courseType === 'Kokurikulum' ? 'bg-purple-50 text-purple-700 border border-purple-100' :
                                 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                               }`}>
                                 {c.courseType}
@@ -1186,11 +1186,11 @@ export default function App() {
                         className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-indigo-700"
                       >
                         <option value="Teras">Teras (Core)</option>
-                        <option value="Elektif">Elektif (Elective)</option>
-                        <option value="MPU">MPU (General Studies)</option>
-                        <option value="Latihan Industri">Latihan Industri (Internship)</option>
-                        <option value="Kokurikulum">Kokurikulum (Co-curriculum)</option>
-                        <option value="Generik Bahasa">Generik Bahasa (Languages)</option>
+                        <option value="Elektif Universiti">Elektif Universiti (University Elective)</option>
+                        <option value="MPU (U1-U3)">MPU (U1-U3)</option>
+                        <option value="MPU (U4)">MPU (U4)</option>
+                        <option value="Latihan Industri">Latihan Industri</option>
+                        <option value="Generik/Pengukuhan">Generik/Pengukuhan</option>
                       </select>
                       {wizardData.courseType === 'Latihan Industri' && (
                         <div className="mt-2">
@@ -1582,11 +1582,11 @@ export default function App() {
                       className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
                     >
                       <option value="Teras">Teras (Core)</option>
-                      <option value="Elektif">Elektif (Elective)</option>
-                      <option value="MPU">MPU (General Studies)</option>
-                      <option value="Latihan Industri">Latihan Industri (Internship)</option>
-                      <option value="Kokurikulum">Kokurikulum (Co-curriculum)</option>
-                      <option value="Generik Bahasa">Generik Bahasa (Languages)</option>
+                      <option value="Elektif Universiti">Elektif Universiti (University Elective)</option>
+                      <option value="MPU (U1-U3)">MPU (U1-U3)</option>
+                      <option value="MPU (U4)">MPU (U4)</option>
+                      <option value="Latihan Industri">Latihan Industri</option>
+                      <option value="Generik/Pengukuhan">Generik/Pengukuhan</option>
                     </select>
                     {newCourse.courseType === 'Latihan Industri' && (
                       <div className="mt-2">
@@ -1808,7 +1808,7 @@ export default function App() {
                       className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
                     >
                       <option value="All">All Types</option>
-                      {['Teras', 'Elektif', 'MPU', 'Latihan Industri', 'Kokurikulum', 'Generik Bahasa'].map(t => (
+                      {['Teras', 'Elektif Universiti', 'MPU (U1-U3)', 'MPU (U4)', 'Latihan Industri', 'Generik/Pengukuhan'].map(t => (
                         <option key={t} value={t}>{t}</option>
                       ))}
                     </select>
@@ -1874,7 +1874,14 @@ export default function App() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                            <span className={`font-bold px-2 py-0.5 rounded border text-[11px] ${
+                              c.courseType === 'Teras' ? 'bg-sky-50 text-sky-700 border-sky-100' :
+                              c.courseType === 'Elektif Universiti' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                              c.courseType === 'MPU (U1-U3)' ? 'bg-teal-50 text-teal-700 border-teal-100' :
+                              c.courseType === 'MPU (U4)' ? 'bg-cyan-50 text-cyan-700 border-cyan-100' :
+                              c.courseType === 'Latihan Industri' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                              'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            }`}>
                               {c.courseType}
                             </span>
                             {c.courseType === 'Latihan Industri' && c.liSubType && (
